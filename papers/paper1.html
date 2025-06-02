@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeepPose: Explained</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <nav>
+    <div class="nav-left">Your Name</div>
+    <div class="nav-right">
+      <a href="../index.html">About Me</a>
+      <a href="../research.html">Research Paper Explanations</a>
+    </div>
+  </nav>
+
+  <section>
+    <h1>DeepPose: Human Pose Estimation via Deep Neural Networks</h1>
+    <p>This paper proposes a CNN-based direct regression method to localize human joints from full images.</p>
+    <p>The model outputs 2D joint coordinates \( (x_i, y_i) \) and minimizes the squared Euclidean distance between predicted and true positions:</p>
+
+    <p>
+      \[
+      L = \sum_i \left\| (x_i, y_i) - (x_i^{gt}, y_i^{gt}) \right\|^2
+      \]
+    </p>
+  </section>
+</body>
+</html>
