@@ -1,4 +1,4 @@
-body {
+/* body {
     font-family: sans-serif;
     margin: 0;
     padding: 0;
@@ -33,4 +33,65 @@ body {
     padding-left: 1rem;
     margin-bottom: 1.5rem;
   }
-  
+   */
+   /* Justify text within paragraphs */
+   body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background: #f8f8f8;
+    color: #222;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: #111;
+    color: #fff;
+  }
+
+  nav a {
+    color: #eee;
+    margin-left: 1rem;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  section {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+  }
+
+  .project {
+    border-left: 3px solid #333;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* --- NEW CSS RULES --- */
+
+  /* Justify all paragraphs within the section */
+  section p {
+    text-align: justify;
+  }
+
+  /* Center the image within its container */
+  .image-container {
+    text-align: center; /* This will center the inline-level image */
+    margin-top: 20px;   /* Add some space above the image */
+    margin-bottom: 20px; /* Add some space below the image */
+  }
+
+  /* Ensure the image is responsive and doesn't overflow */
+  .image-container img {
+    max-width: 100%; /* Image won't be wider than its parent */
+    height: auto;    /* Maintain aspect ratio */
+  }
+
+  /* Optional: Center the main heading as well */
+  section h1 {
+    text-align: center;
+  }

@@ -9,7 +9,7 @@
 </head>
 <body>
   <nav>
-    <div class="nav-left">Your Name</div>
+    <div class="nav-left">Rakshitha Kowlikar</div>
     <div class="nav-right">
       <a href="../index.html">About Me</a>
       <a href="../research.html">Research Paper Explanations</a>
@@ -20,15 +20,16 @@
     <h1>DeepPose: Human Pose Estimation via Deep Neural Networks</h1>
     <p>This paper proposes a CNN-based direct regression method to localize human joints from full images.</p>
     <p>The model outputs 2D joint coordinates \( (x_i, y_i) \) and minimizes the squared Euclidean distance between predicted and true positions:</p>
-    <p>Some basic notation used throughout the paper</p>
+    <h2>Some basic notation used throughout the paper</h2>
     <p>Let <b>x</b> be the input image. Then <b>y</b> is the full pose vector comprising of all k joint coordinates flattened into one long vector:</p>
-    <p>\[ 
-    y=[y_1^T,y_2^T,\dots,y_k^T]^T, y_i=(x_i,y_i)\in\mathbb{R}^2 
+    <p>\[
+    y=[y_1^T,y_2^T,\dots,y_k^T]^T, y_i=(x_i,y_i)\in\mathbb{R}^2
     \]
     </p>
     <p>A rectangle tightly around a person is represented by:</p>
     <p>\[b = (b_c,b_w,b_h)\]</p>
     <p>Where \(b_c\) is its center that is \(b_c = (c_x,c_y)\) and \(b_w, b_h\) are its width and height respectively.</p>
+    <h2>Bounding Box Normalization</h2>
     <p>\(N(·; b)\) is the normalization operator that centers a joint or an image by subtracting \(b_c\) and scales it by dividing by \(b_w\) in \(x\) and \(b_y\) in \(y\).</p>
     <p>So,</p>
     <p>\[N(y_i​;b)=\begin{pmatrix}1/b_w & ​0\\
@@ -36,6 +37,163 @@
     </p>
     <p>and</p>
     <p>\(N(x;b)\) crops out that rectangle around the person and resizes it to the network’s fixed input size (220 × 220 in DeepPose).</p>
+    <h2>Direct Regression function</h2>
+    <p>We obtain the network's prediction of joint \(i\)  through the function</p>
+    <p>\[\hat{y} = ψ(\tilde{x};θ) \in\mathbb{R}^{2k}\] where</p>
+    <p>\(ψ\) is the \(7\) layer convolution network with \(θ\) comprising of all the learned weights</p>
+    <p>\(k\) is the number of joints and \(\tilde{x} = N(x;b)\)</p>
+    <p>\(\hat{y} = [\hat{x_1}, \hat{y_1}, \hat{x_2}, \hat{y_2}, ..., \hat{x_i}, \hat{y_i}]\) where each pair \((\hat{x_i},\hat{y_i})\) is the network’s prediction of joint ii, but in the normalized coordinate frame.</p>
+    <p>To get the original location of the predicted points in the image we invert the normalization</p>
+    <p>\[y^\ast = N^{-1}(\hat{y_i};b) = \begin{pmatrix}b_w & ​0\\
+      ​0 & b_h​​\end{pmatrix}\hat{y_i} + b_c\]</p>
+    <h2>Network Architecture</h2>
+    <p>This network draws inspiration from the AlexNet-style architecture</p>
+    <p>\begin{array}{|l|l|l|l|}
+      \hline
+      \textbf{Layer} & \textbf{Operation} & \textbf{Input Size} & \textbf{Output Size} \\
+      \hline
+      \text{Input} & N(x;b) \text{ -- the } 220 \times 220 \text{ RGB crop} & 220 \times 220 \times 3 & 220 \times 220 \times 3 \\
+      \hline
+      \text{Conv1} & 96 \text{ filters of size } 11 \times 11, \text{ stride } 4 \to \text{ReLU} & 220 \times 220 \times 3 & 55 \times 55 \times 96 \\
+      \hline
+      \text{LRN1} & \text{Local Response Normalization (encourages competition between channels)} & 55 \times 55 \times 96 & 55 \times 55 \times 96 \\
+      \hline
+      \text{Pool1} & 3 \times 3 \text{ max-pool, stride } 2 \text{ (takes max in each } 3\times3 \text{ block)} & 55 \times 55 \times 96 & 27 \times 27 \times 96 \\
+      \hline
+      \text{Conv2} & 256 \text{ filters of size } 5 \times 5, \text{ padding to preserve spatial dims } \to \text{ReLU} & 27 \times 27 \times 96 & 27 \times 27 \times 256 \\
+      \hline
+      \text{LRN2} & \text{Local Response Normalization (encourages competition between channels)} & 27 \times 27 \times 256 & 27 \times 27 \times 256 \\
+      \hline
+      \text{Pool2} & 3 \times 3 \text{ max-pool, stride } 2 & 27 \times 27 \times 256 & 13 \times 13 \times 256 \\
+      \hline
+      \text{Conv3} & 384 \text{ filters of size } 3 \times 3, \text{ padding } \to \text{ReLU} & 13 \times 13 \times 256 & 13 \times 13 \times 384 \\
+      \hline
+      \text{Conv4} & 384 \text{ filters of size } 3 \times 3, \text{ padding } \to \text{ReLU} & 13 \times 13 \times 384 & 13 \times 13 \times 384 \\
+      \hline
+      \text{Conv5} & 256 \text{ filters of size } 3 \times 3, \text{ padding } \to \text{ReLU} & 13 \times 13 \times 384 & 13 \times 13 \times 256 \\
+      \hline
+      \text{Pool5} & 3 \times 3 \text{ max-pool, stride } 2 & 13 \times 13 \times 256 & 6 \times 6 \times 256 \\
+      \hline
+      \text{FC6} & \text{Fully connected } \to \text{ReLU} & 6 \times 6 \times 256 = 9216 & 4096 \\
+      \hline
+      \text{FC7} & \text{Fully connected } \to \text{ReLU} & 4096 & 4096 \\
+      \hline
+      \text{Output} & \text{Linear layer producing } 2k \text{ values} & 4096 & 2k \text{ (e.g. } 2\times14) \\
+      \hline
+      \end{array}</p>
+      <div class="image-container"> <img src="../images/Screenshot from 2025-06-03 11-02-11.png" alt="Initial stage image">
+      </div>
+      <h2>Cascade of Pose Regressors</h2>
+      <p>The single 220 × 220 regressor from earlier captures rough pose but—due to pooling and limited input size it tends to lack finer details.</p>
+
+<p>Solution: A cascade of regressors.</p>
+
+<p>Stage 1: Predict an initial pose \(y^{(1)}\) from the full image crop (as explained previously).</p>
+
+<p>Stages 2 ... S: For each joint, it crops a higher‐resolution patch around the current estimate. Later it predicts a small displacement to refine it. This lets later stages “zoom in” and correct small errors.</p>
+
+<h2>Notation</h2>
+
+<p>Let <b>k</b> be the number of joints.</p>
+
+<p>True pose:</p>
+<p>\[
+y = \begin{bmatrix}
+y_1^T,\;y_2^T,\;\dots,\;y_k^T
+\end{bmatrix}^T
+\]</p>
+
+<p>At stage <i>s</i>, the predicted pose is \(y^{(s)}\) with the \(i^{th}\) joint \(y_i^{(s)}\).</p>
+
+<h2>Pose Diameter</h2>
+
+<p>\[
+  \mathrm{diam}(y) = \|\,y_p - y_q\,\|_2,
+  \]
+where \((p,q)\) is a fixed torso-opposite pair (e.g., left shoulder vs. right hip).</p>
+
+<h2>Refinement Box</h2>
+
+<p>Refinement box for joint <i>i</i> at stage <i>s−1</i>:</p>
+<p>\[
+b_i^{(s-1)} 
+= \bigl(\,y_i^{(s-1)},\;\sigma\,\mathrm{diam}\bigl(y^{(s-1)}\bigr),\;\sigma\,\mathrm{diam}\bigl(y^{(s-1)}\bigr)\bigr),
+\]
+i.e., center at the current joint, with width = height = \(\sigma \times \text{pose diameter}.\)</p>
+
+<h2>Stage Formulas</h2>
+
+<p><strong>Stage 1 (initial full-image regression)</strong></p>
+<p>\[
+y^{(1)} \;=\; N^{-1}\!\Bigl(\,\psi\bigl(N(x;\,b_0)\;;\,\theta_1\bigr)\;;\,b_0\Bigr)\quad(5)
+\]
+where <i>b</i><sub>0</sub> is the initial box (e.g., full image or a person detector), and \(\psi(\cdot;\theta_1)\) is the DNN from § 3.1.</p>
+
+<p><strong>Stage \(s \ge 2\) (joint-wise refinement)</strong></p>
+<p>For each joint <i>i</i>:</p>
+<p><b>a. Predict normalized displacement</b></p>
+<p>\[
+\Delta \hat{y}_i^{(s)} 
+= \psi_i\bigl(N(x;\,b_i^{(s-1)})\;;\,\theta_s\bigr)\;\in\;\mathbb{R}^2,
+\]
+where \(\psi_i\) is the 2-D output slice for joint <i>i</i>.</p>
+
+<p><b>b. Map back and update</b></p>
+<p>\[
+y_i^{(s)} 
+= y_i^{(s-1)} 
+  \;+\; N^{-1}\!\bigl(\,\Delta \hat{y}_i^{(s)}\;;\,b_i^{(s-1)}\bigr)\quad(6)
+\]</p>
+
+<p><b>c. Recompute box</b></p>
+<p>\[
+b_i^{(s)} 
+= \bigl(\,y_i^{(s)},\;\sigma\,\mathrm{diam}\bigl(y^{(s)}\bigr),\;\sigma\,\mathrm{diam}\bigl(y^{(s)}\bigr)\bigr)\quad(7)
+\]</p>
+
+<p>In practice, \(S = 3\) stages suffices (determined via a held-out set).</p>
+
+<h2>Training the Cascade</h2>
+
+<h3>Stage 1</h3>
+<p>Exactly as in initial stage: minimize</p>
+<p>\[
+  \sum_{(x,y)\in D_N} \sum_{i} \|\,y_i \;-\; \psi_i\bigl(N(x)\;;\,\theta_1\bigr)\|_2^2.
+  \]
+  </p>
+
+<h3>Stage \(s \ge 2\)</h3>
+<p><b>Simulated “previous-stage” predictions</b></p>
+<p>Compute the empirical mean \(\mu_i^{(s-1)}\) and covariance \(\Sigma_i^{(s-1)}\) of the displacements \(\bigl(y_i^{(s-1)} - y_i\bigr)\) over the training set.</p>
+
+<p>For each training joint, sample a fake displacement</p>
+<p>\[
+\delta \;\sim\; \mathcal{N}\bigl(\,\mu_i^{(s-1)},\,\Sigma_i^{(s-1)}\bigr).
+\]</p>
+
+<p>Define a jittered box</p>
+<p>\[
+b \;=\; \bigl(\,y_i + \delta,\;\sigma\,\mathrm{diam}(y),\;\sigma\,\mathrm{diam}(y)\bigr).
+\]</p>
+
+<p><b>Augmented training set</b></p>
+<p>\[
+D_s^A 
+= \Bigl\{\,\bigl(N(x;\,b),\,N(y_i;\,b)\bigr)\;\Bigm|\;(x,y)\in D,\;\delta \sim \mathcal{N}_i^{(s-1)}\Bigr\}.
+\]</p>
+
+<p><b>Objective</b></p>
+<p>\[
+  \theta_s \;=\; \underset{\theta}{\arg\min}\; 
+  \sum_{(\tilde{x},\tilde{y}_i)\in D_s^A} 
+  \|\tilde{y}_i \;-\; \psi_i(\tilde{x};\,\theta)\|_2^2.
+  \quad(8)
+  \]
+  </p>
+
+<p>Each \(\theta_s\) is learned independently using the same network architecture but its own training data conditioned on earlier stages.</p>
+<div class="image-container"> <img src="..images/cascade.png" alt="Cascaded layers image">
+</div>
   </section>
 </body>
 </html>
