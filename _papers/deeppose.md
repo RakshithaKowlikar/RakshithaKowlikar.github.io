@@ -91,7 +91,7 @@ This network draws inspiration from the AlexNet-style architecture.
 | **FC7** | Fully connected → ReLU                                                     | 4096                      | 4096                   |
 | **Output** | Linear layer producing $2k$ values                                         | 4096                      | $2k$ (e.g. $2\times14$)   |
 
-![Initial stage image](/assets/lib/Screenshot from 2025-06-03 11-02-11.png)
+![Initial stage image](/assets/Screenshot.png)
 
 ### Cascade of Pose Regressors
 The single regressor captures rough pose but lacks finer details due to pooling and limited input size.
@@ -153,4 +153,4 @@ $$
 
 Each $\theta_s$ is learned independently using the same network architecture.
 
-![Cascaded layers image](/assets/lib/cascade.png)
+![Cascaded layers image](/assets/cascade.png)
