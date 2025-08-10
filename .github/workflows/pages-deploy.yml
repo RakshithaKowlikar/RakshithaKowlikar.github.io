@@ -72,11 +72,12 @@
 #         id: deployment
 #         uses: actions/deploy-pages@v4
 # .github/workflows/pages.yml
-name: Build and Deploy (Jekyll)
+# .github/workflows/pages.yml
+name: Build and Deploy (Chirpy)
 
 on:
   push:
-    branches: [master]   # change to [main] if you keep main
+    branches: [master]   # or [main] if you use main
   workflow_dispatch:
 
 permissions:
@@ -94,28 +95,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
 
-      # This action handles Ruby, Bundler, caching, and jekyll build for you
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          source: ./
-          destination: ./_site
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Install gems
+        run: bundle install --without test
+
+      - name: Build with Jekyll (Chirpy)
+        run: bundle exec jekyll build -d "_site${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
+          path: "_site${{ steps.pages.outputs.base_path }}"
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
